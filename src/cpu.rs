@@ -202,6 +202,10 @@ pub(crate) mod arm {
             {
                 return false;
             }
+            #[cfg(target_os = "optee")]
+            {
+                return false;
+            }
         }
     }
 
