@@ -325,6 +325,9 @@ web-sys = { version = "0.3.25", default-features = false, features = ["Crypto", 
 [target.'cfg(target_os = "windows")'.dependencies]
 winapi = { version = "0.3.7", default-features = false, features = ["ntsecapi", "wtypesbase"], optional = true }
 
+[target.'cfg(target_os = "optee")'.dependencies]
+optee-utee = { path = "/work/rust-optee-trustzone-sdk/optee-utee" }
+
 [target.'cfg(any(unix, windows))'.dev-dependencies]
 #libc = { version = "0.2.48", default-features = false, optional = true }
 
