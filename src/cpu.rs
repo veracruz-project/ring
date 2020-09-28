@@ -33,7 +33,7 @@ pub(crate) fn features() -> Features {
             target_arch = "x86",
             target_arch = "x86_64"
         ),
-        not(target_os = "ios")
+        all(not(target_os = "ios"), not(target_os = "optee"))
     ))]
     {
         static INIT: spin::Once<()> = spin::Once::new();

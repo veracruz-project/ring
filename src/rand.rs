@@ -197,7 +197,7 @@ use self::fuchsia::fill as fill_impl;
 use self::gp_tee::fill as fill_impl;
 
 
-#[cfg(all(not(feature = "mesalock_sgx"), target_os = "linux"))]
+#[cfg(all(not(feature = "mesalock_sgx"), not(target_os="optee"), target_os = "linux"))]
 mod sysrand_chunk {
     use crate::{c, error};
 
@@ -311,6 +311,7 @@ mod sysrand {
 // Keep the `cfg` conditions in sync with the conditions in lib.rs.
 #[cfg(all(
     any(target_os = "android", target_os = "linux"),
+    not(target_os = "optee"),
     feature = "dev_urandom_fallback"
 ))]
 mod sysrand_or_urandom {

@@ -88,11 +88,14 @@ extern crate sgx_tstd as std;
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
+#[cfg(all(target_arch = "aarch64", not(target_os="optee")))]
+extern crate libc;
+
 #[macro_use]
 mod debug;
 
-#[macro_use]
-pub mod test;
+//#[macro_use]
+//pub mod test;
 
 #[macro_use]
 mod arithmetic;
