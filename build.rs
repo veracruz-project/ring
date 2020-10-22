@@ -162,8 +162,8 @@ fn c_flags(target: &Target) -> &'static [&'static str] {
             "-Wbad-function-cast",
             "-Wnested-externs",
             "-Wstrict-prototypes",
-            #[cfg(feature="mesalock_sgx")]
-            "-DVERACRUZ_SGX",
+            //#[cfg(feature="mesalock_sgx")]
+            //"-DVERACRUZ_SGX",
         ];
         NON_MSVC_FLAGS
     } else {
@@ -197,8 +197,8 @@ fn cpp_flags(target: &Target) -> &'static [&'static str] {
             "-Wwrite-strings",
             "-fno-strict-aliasing",
             "-fvisibility=hidden",
-            #[cfg(feature="mesalock_sgx")]
-            "-DVERACRUZ_SGX",
+            //#[cfg(feature="mesalock_sgx")]
+            //"-DVERACRUZ_SGX",
         ];
         NON_MSVC_FLAGS
     } else {
@@ -539,6 +539,8 @@ fn cc(
 ) -> Command {
     let mut c = cc::Build::new();
     let _ = c.include("include");
+    #[cfg(feature="mesalock_sgx")]
+    let _ = c.define("VERACRUZ_SGX", None);
     match ext {
         "c" => {
             for f in c_flags(target) {
