@@ -62,6 +62,23 @@
     unused_results,
     warnings
 )]
+#![cfg_attr(
+        all(
+            any(
+                target_os = "redox",
+                all(
+                    not(test),
+                    not(feature = "use_heap"),
+                    unix,
+                    not(any(target_os = "macos", target_os = "ios")),
+                    any(not(target_os = "linux"), feature = "dev_urandom_fallback")
+                ),
+            ),
+            not(feature = "nitro")
+        )
+    ,
+    no_std
+)]
 #![no_std]
 #![cfg_attr(feature = "internal_benches", allow(unstable_features), feature(test))]
 
