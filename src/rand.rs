@@ -468,6 +468,5 @@ mod nitro {
             },
             _ => return Err(error::Unspecified),
         };
-        Ok(())
     }
 }
