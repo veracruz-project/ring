@@ -63,20 +63,24 @@
     //warnings
 )]
 #![cfg_attr(
-    any(
-        target_os = "redox",
         all(
-            not(test),
-            not(feature = "use_heap"),
-            unix,
-            not(any(target_os = "macos", target_os = "ios")),
-            any(not(target_os = "linux"), feature = "dev_urandom_fallback")
-        ),
-        all(
-            feature = "mesalock_sgx",
-            not(target_env = "sgx"),
-        ),
-    ),
+            any(
+                target_os = "redox",
+                all(
+                    not(test),
+                    not(feature = "use_heap"),
+                    unix,
+                    not(any(target_os = "macos", target_os = "ios")),
+                    any(not(target_os = "linux"), feature = "dev_urandom_fallback")
+                ),
+                all(
+                    feature = "mesalock_sgx",
+                    not(target_env = "sgx"),
+                )
+            ),
+            not(feature = "nitro")
+        )
+    ,
     no_std
 )]
 #![cfg_attr(feature = "internal_benches", allow(unstable_features), feature(test))]
