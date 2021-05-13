@@ -206,6 +206,9 @@ use self::fuchsia::fill as fill_impl;
 #[cfg(feature = "nitro")]
 use self::nitro::fill as fill_impl;
 
+#[cfg(any(target_os = "icecap"))]
+use self::icecap::fill as fill_impl;
+
 
 #[cfg(all(target_os = "linux", not(feature = "nitro")))]
 mod sysrand_chunk {
@@ -468,5 +471,24 @@ mod nitro {
             },
             _ => return Err(error::Unspecified),
         };
+    }
+}
+
+#[cfg(any(target_os = "icecap"))]
+mod icecap {
+    use core::sync::atomic::{AtomicU64, Ordering};
+    use crate::error;
+
+    // HACK
+    // Placeholder generator with a fixed seed and a period of 2**61
+
+    static STATE: AtomicU64 = AtomicU64::new(0);
+
+    pub fn fill(dest: &mut [u8]) -> Result<(), error::Unspecified> {
+        for b in dest {
+            let state = STATE.fetch_add(1, Ordering::SeqCst);
+            *b = state.to_ne_bytes()[(state & 0b111) as usize];
+        }
+        Ok(())
     }
 }
