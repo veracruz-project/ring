@@ -172,6 +172,7 @@ pub(crate) mod arm {
         #[cfg_attr(
             any(
                 target_os = "ios",
+                target_os = "icecap",
                 not(any(target_arch = "arm", target_arch = "aarch64"))
             ),
             allow(dead_code)
@@ -202,7 +203,7 @@ pub(crate) mod arm {
             {
                 return false;
             }
-            #[cfg(target_os = "optee")]
+            #[cfg(any(target_os = "optee", target_os = "icecap"))]
             {
                 return false;
             }
@@ -211,6 +212,7 @@ pub(crate) mod arm {
 
     // Keep in sync with `ARMV7_NEON`.
     #[cfg(any(target_arch = "aarch64", target_arch = "arm"))]
+    #[cfg_attr(target_os = "icecap", allow(dead_code))]
     pub(crate) const NEON: Feature = Feature {
         mask: 1 << 0,
         ios: true,
