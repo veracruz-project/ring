@@ -329,7 +329,7 @@ web-sys = { version = "0.3.25", default-features = false, features = ["Crypto", 
 winapi = { version = "0.3.7", default-features = false, features = ["ntsecapi", "wtypesbase"], optional = true }
 
 [target.'cfg(target_os = "optee")'.dependencies]
-optee-utee = { git = "https://github.com/veracruz-project/rust-optee-trustzone-sdk.git", branch = "veracruz" }
+optee-utee = { git = "https://github.com/veracruz-project/rust-optee-trustzone-sdk.git", branch = "veracruz-v1" }
 
 [target.'cfg(any(unix, windows))'.dev-dependencies]
 #libc = { version = "0.2.48", default-features = false, optional = true }
