@@ -25,11 +25,6 @@
 //! (seccomp filters on Linux in particular). See `SystemRandom`'s
 //! documentation for more details.
 
-#[cfg(feature = "nitro")]
-use nsm_io;
-#[cfg(feature = "nitro")]
-use nsm_lib;
-
 use crate::error;
 
 /// A secure random number generator.
@@ -456,6 +451,8 @@ mod fuchsia {
 #[cfg(feature = "nitro")]
 mod nitro {
     use crate::error;
+    use nsm_io;
+    use nsm_lib;
     pub fn fill(dest: &mut [u8]) -> Result<(), error::Unspecified> {
         let nsm_fd = nsm_lib::nsm_lib_init();
         if nsm_fd < 0 {
