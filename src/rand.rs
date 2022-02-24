@@ -451,7 +451,7 @@ mod fuchsia {
 #[cfg(feature = "nitro")]
 mod nitro {
     use crate::error;
-    use nsm_io;
+    use nsm_api;
     use nsm_lib;
     pub fn fill(dest: &mut [u8]) -> Result<(), error::Unspecified> {
         let nsm_fd = nsm_lib::nsm_lib_init();
@@ -463,7 +463,7 @@ mod nitro {
             nsm_lib::nsm_get_random(nsm_fd, dest.as_mut_ptr(), &mut dest_len)
         };
         return match status {
-            nsm_io::ErrorCode::Success => {
+            nsm_api::api::ErrorCode::Success => {
                 Ok(())
             },
             _ => return Err(error::Unspecified),
