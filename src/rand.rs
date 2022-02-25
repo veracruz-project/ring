@@ -26,7 +26,7 @@
 //! documentation for more details.
 
 #[cfg(feature = "nitro")]
-use nsm_io;
+use nsm_api;
 #[cfg(feature = "nitro")]
 use nsm_lib;
 
@@ -467,7 +467,7 @@ mod nitro {
             nsm_lib::nsm_get_random(nsm_fd, dest.as_mut_ptr(), &mut dest_len)
         };
         return match status {
-            nsm_io::ErrorCode::Success => {
+            nsm_api::api::ErrorCode::Success => {
                 Ok(())
             },
             _ => return Err(error::Unspecified),
