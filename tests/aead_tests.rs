@@ -12,30 +12,21 @@
 // OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
 // CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-#![forbid(
-    anonymous_parameters,
-    box_pointers,
-    missing_copy_implementations,
-    missing_debug_implementations,
-    missing_docs,
-    trivial_casts,
-    trivial_numeric_casts,
-    unsafe_code,
-    unstable_features,
-    unused_extern_crates,
-    unused_import_braces,
-    unused_qualifications,
-    unused_results,
-    variant_size_differences,
-    warnings
-)]
+#![cfg(any(not(target_arch = "wasm32"), feature = "wasm32_c"))]
+
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen_test::{wasm_bindgen_test, wasm_bindgen_test_configure};
+
+#[cfg(target_arch = "wasm32")]
+wasm_bindgen_test_configure!(run_in_browser);
 
 use core::ops::RangeFrom;
 use ring::{aead, error, test, test_file};
 use std::prelude::v1::*;
 
-//#[test]
-pub fn aead_aes_gcm_128() {
+#[test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+fn aead_aes_gcm_128() {
     test_aead(
         &aead::AES_128_GCM,
         seal_with_key,
@@ -50,8 +41,9 @@ pub fn aead_aes_gcm_128() {
     );
 }
 
-//#[test]
-pub fn aead_aes_gcm_256() {
+#[test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+fn aead_aes_gcm_256() {
     test_aead(
         &aead::AES_256_GCM,
         seal_with_key,
@@ -66,8 +58,14 @@ pub fn aead_aes_gcm_256() {
     );
 }
 
-//#[test]
-pub fn aead_chacha20_poly1305() {
+#[cfg(any(
+    target_arch = "aarch64",
+    target_arch = "arm",
+    target_arch = "x86_64",
+    target_arch = "x86"
+))]
+#[test]
+fn aead_chacha20_poly1305() {
     test_aead(
         &aead::CHACHA20_POLY1305,
         seal_with_key,
@@ -194,22 +192,20 @@ fn test_aead<Seal, Open>(
         ];
 
         let mut more_comprehensive_in_prefix_lengths = [0; 4096];
-        let in_prefix_lengths;
-        if cfg!(debug_assertions) {
-            in_prefix_lengths = &MINIMAL_IN_PREFIX_LENS[..];
+        let in_prefix_lengths = if cfg!(debug_assertions) {
+            &MINIMAL_IN_PREFIX_LENS[..]
         } else {
+            #[allow(clippy::needless_range_loop)]
             for b in 0..more_comprehensive_in_prefix_lengths.len() {
                 more_comprehensive_in_prefix_lengths[b] = b;
             }
-            in_prefix_lengths = &more_comprehensive_in_prefix_lengths[..];
-        }
+            &more_comprehensive_in_prefix_lengths[..]
+        };
         let mut o_in_out = vec![123u8; 4096];
 
-        for in_prefix_len in in_prefix_lengths.iter() {
+        for &in_prefix_len in in_prefix_lengths.iter() {
             o_in_out.truncate(0);
-            for _ in 0..*in_prefix_len {
-                o_in_out.push(123);
-            }
+            o_in_out.resize(in_prefix_len, 123);
             o_in_out.extend_from_slice(&ct[..]);
 
             let nonce = aead::Nonce::try_assume_unique_for_key(&nonce_bytes).unwrap();
@@ -219,7 +215,7 @@ fn test_aead<Seal, Open>(
                 nonce,
                 aead::Aad::from(&aad[..]),
                 &mut o_in_out,
-                *in_prefix_len..,
+                in_prefix_len..,
             );
             match error {
                 None => {
@@ -286,6 +282,7 @@ fn open_with_less_safe_key<'a>(
     key.open_within(nonce, aad, in_out, ciphertext_and_tag)
 }
 
+#[allow(clippy::range_plus_one)]
 fn test_aead_key_sizes(aead_alg: &'static aead::Algorithm) {
     let key_len = aead_alg.key_len();
     let key_data = vec![0u8; key_len * 2];
@@ -313,8 +310,9 @@ fn test_aead_key_sizes(aead_alg: &'static aead::Algorithm) {
 }
 
 // Test that we reject non-standard nonce sizes.
-//#[test]
-pub fn test_aead_nonce_sizes() -> Result<(), error::Unspecified> {
+#[allow(clippy::range_plus_one)]
+#[test]
+fn test_aead_nonce_sizes() -> Result<(), error::Unspecified> {
     let nonce_len = aead::NONCE_LEN;
     let nonce = vec![0u8; nonce_len * 2];
 
@@ -330,8 +328,15 @@ pub fn test_aead_nonce_sizes() -> Result<(), error::Unspecified> {
     Ok(())
 }
 
-//#[test]
-pub fn aead_chacha20_poly1305_openssh() {
+#[cfg(any(
+    target_arch = "aarch64",
+    target_arch = "arm",
+    target_arch = "x86_64",
+    target_arch = "x86"
+))]
+#[allow(clippy::range_plus_one)]
+#[test]
+fn aead_chacha20_poly1305_openssh() {
     // TODO: test_aead_key_sizes(...);
 
     test::run(
@@ -360,7 +365,7 @@ pub fn aead_chacha20_poly1305_openssh() {
             let mut tag = [0u8; aead::chacha20_poly1305_openssh::TAG_LEN];
             let mut s_in_out = plaintext.clone();
             let s_key = aead::chacha20_poly1305_openssh::SealingKey::new(&key_bytes);
-            let () = s_key.seal_in_place(sequence_num, &mut s_in_out[..], &mut tag);
+            s_key.seal_in_place(sequence_num, &mut s_in_out[..], &mut tag);
             assert_eq!(&ct, &s_in_out);
             assert_eq!(&expected_tag, &tag);
             let o_key = aead::chacha20_poly1305_openssh::OpeningKey::new(&key_bytes);
@@ -377,14 +382,16 @@ pub fn aead_chacha20_poly1305_openssh() {
     );
 }
 
-//#[test]
-pub fn test_tag_traits() {
+#[test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+fn test_tag_traits() {
     test::compile_time_assert_send::<aead::Tag>();
     test::compile_time_assert_sync::<aead::Tag>();
 }
 
-//#[test]
-pub fn test_aead_key_debug() {
+#[test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+fn test_aead_key_debug() {
     let key_bytes = [0; 32];
     let nonce = [0; aead::NONCE_LEN];
 
@@ -395,12 +402,12 @@ pub fn test_aead_key_debug() {
     );
 
     let sealing_key: aead::SealingKey<OneNonceSequence> = make_key(
-        &aead::CHACHA20_POLY1305,
+        &aead::AES_256_GCM,
         &key_bytes,
         aead::Nonce::try_assume_unique_for_key(&nonce).unwrap(),
     );
     assert_eq!(
-        "SealingKey { algorithm: CHACHA20_POLY1305 }",
+        "SealingKey { algorithm: AES_256_GCM }",
         format!("{:?}", sealing_key)
     );
 
@@ -414,9 +421,9 @@ pub fn test_aead_key_debug() {
         format!("{:?}", opening_key)
     );
 
-    let key: aead::LessSafeKey = make_less_safe_key(&aead::CHACHA20_POLY1305, &key_bytes);
+    let key: aead::LessSafeKey = make_less_safe_key(&aead::AES_256_GCM, &key_bytes);
     assert_eq!(
-        "LessSafeKey { algorithm: CHACHA20_POLY1305 }",
+        "LessSafeKey { algorithm: AES_256_GCM }",
         format!("{:?}", key)
     );
 }

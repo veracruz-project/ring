@@ -19,7 +19,6 @@
 //! limbs use the native endianness.
 
 use crate::{c, error};
-use untrusted;
 
 #[cfg(feature = "alloc")]
 use crate::bits;
@@ -350,7 +349,6 @@ extern "C" {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use untrusted;
 
     const MAX: Limb = LimbMask::True as Limb;
 
@@ -541,10 +539,10 @@ mod tests {
 
         #[cfg(target_pointer_width = "64")]
         let limbs = [
-            0x89900aab_bccddeef,
-            0x01122334_45566778,
-            0x99aabbcc_ddeeff00,
-            0x11223344_55667788,
+            0x8990_0aab_bccd_deef,
+            0x0112_2334_4556_6778,
+            0x99aa_bbcc_ddee_ff00,
+            0x1122_3344_5566_7788,
         ];
 
         let expected = [
@@ -570,9 +568,9 @@ mod tests {
         // One fewer limb.
         #[cfg(target_pointer_width = "64")]
         let limbs = [
-            0x89900aab_bccddeef,
-            0x01122334_45566778,
-            0x99aabbcc_ddeeff00,
+            0x8990_0aab_bccd_deef,
+            0x0112_2334_4556_6778,
+            0x99aa_bbcc_ddee_ff00,
         ];
 
         let mut out = [0xabu8; 32];
