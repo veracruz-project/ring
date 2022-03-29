@@ -302,7 +302,6 @@ all-features = true
 name = "ring"
 
 [dependencies]
-untrusted = "0.7.0"
 untrusted = { version = "0.7.1" }
 
 nsm_lib = { git = "https://github.com/aws/aws-nitro-enclaves-nsm-api.git/", branch = "main", package="nsm-lib", optional = true }
@@ -345,7 +344,7 @@ std = ["alloc"]
 test_logging = []
 
 nitro = ["nsm_lib", "nsm_api"]
-wasm32_c = [
+wasm32_c = []
 
 # XXX: debug = false because of https://github.com/rust-lang/rust/issues/34122
 
