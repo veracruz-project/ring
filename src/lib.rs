@@ -76,7 +76,11 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
-#[cfg(all(target_arch = "aarch64", not(target_os="optee"), not(target_os = "icecap")))]
+#[cfg(all(
+    target_arch = "aarch64",
+    not(target_os = "optee"),
+    not(target_os = "icecap")
+))]
 extern crate libc;
 
 #[macro_use]

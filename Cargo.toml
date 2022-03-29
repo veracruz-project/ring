@@ -304,8 +304,8 @@ name = "ring"
 [dependencies]
 untrusted = { version = "0.7.1" }
 
-nsm_lib = { git = "https://github.com/aws/aws-nitro-enclaves-nsm-api.git/", branch = "main", package="nsm-lib", optional = true }
-nsm_api = { git = "https://github.com/aws/aws-nitro-enclaves-nsm-api.git/", branch = "main", package="aws-nitro-enclaves-nsm-api", optional = true }
+nsm_lib = { git = "https://github.com/aws/aws-nitro-enclaves-nsm-api.git/", version = "0.2.0", branch = "main", package="nsm-lib", optional = true }
+nsm_api = { git = "https://github.com/aws/aws-nitro-enclaves-nsm-api.git/", version = "0.2.0", branch = "main", package="aws-nitro-enclaves-nsm-api", optional = true }
 
 [target.'cfg(any(target_arch = "x86",target_arch = "x86_64", all(any(target_arch = "aarch64", target_arch = "arm"), any(target_os = "android", target_os = "fuchsia", target_os = "linux"))))'.dependencies]
 spin = { version = "0.5.2", default-features = false }

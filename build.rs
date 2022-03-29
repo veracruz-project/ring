@@ -536,7 +536,7 @@ fn cc(
 
     let mut c = cc::Build::new();
     let _ = c.include("include");
-    #[cfg(feature="mesalock_sgx")]
+    #[cfg(feature = "mesalock_sgx")]
     let _ = c.define("VERACRUZ_SGX", None);
     match ext {
         "c" => {

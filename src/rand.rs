@@ -186,13 +186,15 @@ use self::sysrand::fill as fill_impl;
 ))]
 use self::sysrand_or_urandom::fill as fill_impl;
 
-#[cfg(all(any(
-    target_os = "dragonfly",
-    target_os = "freebsd",
-    target_os = "illumos",
-    target_os = "netbsd",
-    target_os = "openbsd",
-    target_os = "solaris"),
+#[cfg(all(
+    any(
+        target_os = "dragonfly",
+        target_os = "freebsd",
+        target_os = "illumos",
+        target_os = "netbsd",
+        target_os = "openbsd",
+        target_os = "solaris"
+    ),
     not(feature = "nitro")
 ))]
 use self::urandom::fill as fill_impl;
@@ -212,8 +214,12 @@ use self::nitro::fill as fill_impl;
 #[cfg(any(target_os = "icecap"))]
 use self::icecap::fill as fill_impl;
 
-
-#[cfg(all(not(feature = "mesalock_sgx"), not(target_os="optee"), target_os = "linux", not(feature = "nitro")))]
+#[cfg(all(
+    not(feature = "mesalock_sgx"),
+    not(target_os = "optee"),
+    target_os = "linux",
+    not(feature = "nitro")
+))]
 mod sysrand_chunk {
     use crate::{c, error};
 
@@ -266,14 +272,13 @@ mod sysrand_chunk {
 mod sysrand_chunk {
     use crate::error;
 
-    extern {
-        fn sgx_read_rand(p: * mut u8, l: usize) -> u32;
+    extern "C" {
+        fn sgx_read_rand(p: *mut u8, l: usize) -> u32;
     }
 
     #[inline]
     pub fn chunk(dest: &mut [u8]) -> Result<usize, error::Unspecified> {
-        match unsafe { sgx_read_rand(dest.as_mut_ptr(),
-                                     dest.len()) } {
+        match unsafe { sgx_read_rand(dest.as_mut_ptr(), dest.len()) } {
             0 => Ok(dest.len()),
             _ => Err(error::Unspecified),
         }
@@ -304,11 +309,13 @@ mod sysrand_chunk {
     }
 }
 
-#[cfg(all(any(
-    target_os = "android",
-    target_os = "linux",
-    target_arch = "wasm32",
-    windows),
+#[cfg(all(
+    any(
+        target_os = "android",
+        target_os = "linux",
+        target_arch = "wasm32",
+        windows
+    ),
     not(feature = "nitro")
 ))]
 mod sysrand {
@@ -462,13 +469,9 @@ mod nitro {
             return Err(error::Unspecified);
         }
         let mut dest_len = dest.len();
-        let status = unsafe {
-            nsm_lib::nsm_get_random(nsm_fd, dest.as_mut_ptr(), &mut dest_len)
-        };
+        let status = unsafe { nsm_lib::nsm_get_random(nsm_fd, dest.as_mut_ptr(), &mut dest_len) };
         return match status {
-            nsm_api::api::ErrorCode::Success => {
-                Ok(())
-            },
+            nsm_api::api::ErrorCode::Success => Ok(()),
             _ => return Err(error::Unspecified),
         };
     }
@@ -476,8 +479,8 @@ mod nitro {
 
 #[cfg(any(target_os = "icecap"))]
 mod icecap {
-    use core::sync::atomic::{AtomicU64, Ordering};
     use crate::error;
+    use core::sync::atomic::{AtomicU64, Ordering};
 
     // HACK
     // Placeholder generator with a fixed seed and a period of 2**61
