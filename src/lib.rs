@@ -39,6 +39,7 @@
 
 #![doc(html_root_url = "https://briansmith.org/rustdoc/")]
 #![allow(
+    forbidden_lint_groups,
     missing_copy_implementations,
     missing_debug_implementations,
     non_camel_case_types,
@@ -60,7 +61,6 @@
     unused_extern_crates,
     unused_import_braces,
     unused_results,
-    warnings
 )]
 #![cfg_attr(
         all(
