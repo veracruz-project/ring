@@ -25,6 +25,11 @@
 //! (seccomp filters on Linux in particular). See `SystemRandom`'s
 //! documentation for more details.
 
+#[cfg(feature = "nitro")]
+use nsm_api;
+#[cfg(feature = "nitro")]
+use nsm_lib;
+
 use crate::error;
 
 /// A secure random number generator.
@@ -166,6 +171,7 @@ impl crate::sealed::Sealed for SystemRandom {}
 #[cfg(any(
     all(
         any(target_os = "android", target_os = "linux"),
+        not(feature = "nitro"),
         not(feature = "dev_urandom_fallback")
     ),
     target_arch = "wasm32",
@@ -175,17 +181,19 @@ use self::sysrand::fill as fill_impl;
 
 #[cfg(all(
     any(target_os = "android", target_os = "linux"),
+    not(feature = "nitro"),
     feature = "dev_urandom_fallback"
 ))]
 use self::sysrand_or_urandom::fill as fill_impl;
 
-#[cfg(any(
+#[cfg(all(any(
     target_os = "dragonfly",
     target_os = "freebsd",
     target_os = "illumos",
     target_os = "netbsd",
     target_os = "openbsd",
-    target_os = "solaris",
+    target_os = "solaris"),
+    not(feature = "nitro")
 ))]
 use self::urandom::fill as fill_impl;
 
@@ -194,6 +202,12 @@ use self::darwin::fill as fill_impl;
 
 #[cfg(any(target_os = "fuchsia"))]
 use self::fuchsia::fill as fill_impl;
+
+#[cfg(feature = "nitro")]
+use self::nitro::fill as fill_impl;
+
+#[cfg(any(target_os = "icecap"))]
+use self::icecap::fill as fill_impl;
 
 #[cfg(any(target_os = "android", target_os = "linux"))]
 mod sysrand_chunk {
@@ -296,11 +310,12 @@ mod sysrand_chunk {
     }
 }
 
-#[cfg(any(
+#[cfg(all(any(
     target_os = "android",
     target_os = "linux",
     target_arch = "wasm32",
-    windows
+    windows),
+    not(feature = "nitro")
 ))]
 mod sysrand {
     use super::sysrand_chunk::chunk;
@@ -319,7 +334,8 @@ mod sysrand {
 // Keep the `cfg` conditions in sync with the conditions in lib.rs.
 #[cfg(all(
     any(target_os = "android", target_os = "linux"),
-    feature = "dev_urandom_fallback"
+    feature = "dev_urandom_fallback",
+    not(feature = "nitro"),
 ))]
 mod sysrand_or_urandom {
     use crate::error;
@@ -351,7 +367,8 @@ mod sysrand_or_urandom {
 #[cfg(any(
     all(
         any(target_os = "android", target_os = "linux"),
-        feature = "dev_urandom_fallback"
+        feature = "dev_urandom_fallback",
+        not(feature = "nitro"),
     ),
     target_os = "dragonfly",
     target_os = "freebsd",
@@ -429,5 +446,45 @@ mod fuchsia {
     #[link(name = "zircon")]
     extern "C" {
         fn zx_cprng_draw(buffer: *mut u8, length: usize);
+    }
+}
+
+#[cfg(feature = "nitro")]
+mod nitro {
+    use crate::error;
+    pub fn fill(dest: &mut [u8]) -> Result<(), error::Unspecified> {
+        let nsm_fd = nsm_lib::nsm_lib_init();
+        if nsm_fd < 0 {
+            return Err(error::Unspecified);
+        }
+        let mut dest_len = dest.len();
+        let status = unsafe {
+            nsm_lib::nsm_get_random(nsm_fd, dest.as_mut_ptr(), &mut dest_len)
+        };
+        return match status {
+            nsm_api::api::ErrorCode::Success => {
+                Ok(())
+            },
+            _ => return Err(error::Unspecified),
+        };
+    }
+}
+
+#[cfg(any(target_os = "icecap"))]
+mod icecap {
+    use core::sync::atomic::{AtomicU64, Ordering};
+    use crate::error;
+
+    // HACK
+    // Placeholder generator with a fixed seed and a period of 2**61
+
+    static STATE: AtomicU64 = AtomicU64::new(0);
+
+    pub fn fill(dest: &mut [u8]) -> Result<(), error::Unspecified> {
+        for b in dest {
+            let state = STATE.fetch_add(1, Ordering::SeqCst);
+            *b = state.to_ne_bytes()[(state & 0b111) as usize];
+        }
+        Ok(())
     }
 }

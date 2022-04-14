@@ -324,6 +324,10 @@ pub(crate) mod intel {
             {
                 return false;
             }
+            #[cfg(target_os = "icecap")]
+            {
+                return false;
+            }
         }
     }
 
