@@ -25,11 +25,6 @@
 //! (seccomp filters on Linux in particular). See `SystemRandom`'s
 //! documentation for more details.
 
-#[cfg(feature = "nitro")]
-use nsm_api;
-#[cfg(feature = "nitro")]
-use nsm_lib;
-
 use crate::error;
 
 /// A secure random number generator.
@@ -209,7 +204,7 @@ use self::nitro::fill as fill_impl;
 #[cfg(any(target_os = "icecap"))]
 use self::icecap::fill as fill_impl;
 
-#[cfg(any(target_os = "android", target_os = "linux"))]
+#[cfg(all(any(target_os = "android", target_os = "linux"), not(feature = "nitro")))]
 mod sysrand_chunk {
     use crate::{c, error};
 
